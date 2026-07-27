@@ -1,0 +1,26 @@
+{
+  "name": "edutrust-africa",
+  "version": "1.0.0",
+  "description": "A decentralized Web3 application for securely issuing, managing, and instantly verifying cross-border academic credentials across African institutions using Ethereum smart contracts.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TammyBriggs/EduTrust-Africa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TammyBriggs/EduTrust-Africa/issues"
+  },
+  "homepage": "https://github.com/TammyBriggs/EduTrust-Africa#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "dotenv": "^17.4.2",
+    "hardhat": "^2.29.0"
+  }
+}
