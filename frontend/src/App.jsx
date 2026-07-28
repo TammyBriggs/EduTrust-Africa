@@ -163,13 +163,13 @@ function App() {
             onClick={() => { setActiveTab("verify"); setVerifyHash(""); setFileName(""); setResult(null); }}
             className={`px-6 py-2 rounded-xl transition-all duration-300 font-medium ${activeTab === "verify" ? "bg-white/10 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"}`}
           >
-            Verify Credential
+            Verify Credential |
           </button>
           <button 
             onClick={() => { setActiveTab("issue"); setMintFileHash(""); setFileName(""); }}
             className={`px-6 py-2 rounded-xl transition-all duration-300 font-medium ${activeTab === "issue" ? "bg-white/10 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"}`}
           >
-            Institution Portal
+            | Institution Portal
           </button>
         </div>
 
@@ -203,7 +203,7 @@ function App() {
                 className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accentCyan/50 transition-all duration-300"
               />
               
-              <button type="submit" disabled={loadingVerify} className="w-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-semibold rounded-xl px-5 py-4 mt-2 shadow-lg shadow-accentCyan/20 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50">
+              <button type="submit" disabled={loadingVerify} className="w-full bg-gradient-to-r from-accentCyan to-accentPurple text-white font-semibold rounded-xl px-5 py-4 mt-8 shadow-lg shadow-accentCyan/20 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50">
                 {loadingVerify ? "Verifying..." : "Verify Authenticity"}
               </button>
             </form>
