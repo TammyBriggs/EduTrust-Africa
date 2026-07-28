@@ -33,6 +33,7 @@ contract EduTrust {
     event IssuerRevoked(address indexed issuerAddress);
     event CredentialIssued(bytes32 indexed credentialHash, address indexed issuerAddress);
     event CredentialRevoked(bytes32 indexed credentialHash, address indexed issuerAddress);
+    event IssuerAccessRevoked(address indexed issuerAddress);
 
     // Modifiers
     modifier onlyAdmin() {
@@ -94,6 +95,15 @@ contract EduTrust {
 
         credentials[_credentialHash].isValid = false;
         emit CredentialRevoked(_credentialHash, msg.sender);
+    }
+
+    /**
+     * @dev Revokes an institution's ability to issue new credentials.
+     */
+    function revokeIssuer(address _issuer) external onlyAdmin {
+        require(accreditedIssuers[_issuer].isAuthorized, "EduTrust: Issuer is not currently authorized");
+        accreditedIssuers[_issuer].isAuthorized = false;
+        emit IssuerAccessRevoked(_issuer);
     }
 
     /**
