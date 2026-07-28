@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { ethers } from 'ethers'
 
-// REPLACE WITH YOUR NEW CONTRACT ADDRESS
+// Your NEW Contract Address
 const CONTRACT_ADDRESS = "0x4C117612Fa38CD8E2B20072D7D233aB54e1f9868";
 
-// Expanded ABI including Revoke functions and the Event log for Tx Hash lookup
 const contractABI = [
   "function verifyCredential(bytes32 _credentialHash) external view returns (bool isValid, string memory institutionName, string memory country, string memory programName, uint256 issueDate)",
   "function issueCredential(bytes32 _credentialHash, string memory _studentIdHash, string memory _programName) external",
@@ -107,7 +106,6 @@ function App() {
     setIsMinting(false);
   };
 
-  // NEW: Revoke Credential Function
   const handleRevoke = async (e) => {
     e.preventDefault();
     if (!revokeHash) return;
@@ -146,11 +144,10 @@ function App() {
 
       const data = await contract.verifyCredential(verifyHash);
       
-      // NEW: Query blockchain event logs to find the transaction hash
       let txHash = null;
       try {
         const filter = contract.filters.CredentialIssued(verifyHash);
-        const events = await contract.queryFilter(filter, -10000); // Check recent blocks
+        const events = await contract.queryFilter(filter, -10000);
         if (events.length > 0) {
           txHash = events[0].transactionHash;
         }
@@ -185,7 +182,6 @@ function App() {
           <p className="text-gray-400 text-lg">Decentralized Academic Credential Infrastructure</p>
         </div>
 
-        {/* Tab Navigation - Fixed Spacing */}
         <div className="flex justify-center gap-2 mb-8 bg-black/40 p-1.5 rounded-2xl border border-white/10 w-fit mx-auto">
           <button 
             onClick={() => { setActiveTab("verify"); setVerifyHash(""); setFileName(""); setResult(null); }}
@@ -241,7 +237,6 @@ function App() {
                   <div><p className="text-gray-500">Program</p><p className="text-white">{result.program}</p></div>
                   <div><p className="text-gray-500">Issued</p><p className="text-white">{result.date}</p></div>
                 </div>
-                {/* NEW: Etherscan Transaction Hash Link */}
                 {result.txHash && (
                    <div className="pt-4 border-t border-white/10 text-center">
                      <a href={`https://sepolia.etherscan.io/tx/${result.txHash}`} target="_blank" rel="noopener noreferrer" className="text-accentCyan hover:text-accentPurple transition-colors text-sm font-medium flex items-center justify-center gap-2">
@@ -263,57 +258,65 @@ function App() {
               </div>
             ) : (
               <>
-                {/* Minting Section */}
-                {issuerData && (
-                  <form onSubmit={handleMint} className="flex flex-col gap-5 pb-8 border-b border-white/10">
-                    <div className="bg-accentCyan/10 border border-accentCyan/30 rounded-xl p-4 mb-2 flex justify-between items-center">
-                      <div>
-                        <p className="text-accentCyan text-sm font-bold">Authorized Issuer Active</p>
-                        <p className="text-white text-lg">{issuerData.name} ({issuerData.country})</p>
+                {/* CORRECTED CONDITIONAL WRAPPER: Now protects BOTH Mint and Revoke sections */}
+                {issuerData ? (
+                  <>
+                    {/* Minting Section */}
+                    <form onSubmit={handleMint} className="flex flex-col gap-5 pb-8 border-b border-white/10">
+                      <div className="bg-accentCyan/10 border border-accentCyan/30 rounded-xl p-4 mb-2 flex justify-between items-center">
+                        <div>
+                          <p className="text-accentCyan text-sm font-bold">Authorized Issuer Active</p>
+                          <p className="text-white text-lg">{issuerData.name} ({issuerData.country})</p>
+                        </div>
+                        <div className="h-3 w-3 bg-accentCyan rounded-full animate-pulse"></div>
                       </div>
-                      <div className="h-3 w-3 bg-accentCyan rounded-full animate-pulse"></div>
+
+                      <input type="text" placeholder="Student ID Number" value={studentId} onChange={(e) => setStudentId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-accentPurple/50 outline-none" required />
+                      <input type="text" placeholder="Academic Program (e.g., BSc Software Engineering)" value={programName} onChange={(e) => setProgramName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-accentPurple/50 outline-none" required />
+                      
+                      <label className="border-2 border-dashed border-white/20 rounded-xl p-6 text-center hover:border-accentPurple/50 transition-colors bg-black/20 block cursor-pointer group">
+                        <input type="file" onChange={(e) => handleFileUpload(e, false)} style={{ display: 'none' }} required />
+                        <p className="text-gray-300 font-medium group-hover:text-accentPurple transition-colors">
+                          {fileName ? fileName : "Upload Certificate to Generate Hash"}
+                        </p>
+                      </label>
+
+                      <button type="submit" disabled={isMinting} className="w-full bg-gradient-to-r from-accentPurple to-accentCyan text-white font-semibold rounded-xl px-5 py-4 mt-4 shadow-lg shadow-accentPurple/20 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50">
+                        {isMinting ? "Minting to Blockchain..." : "Mint Digital Credential"}
+                      </button>
+                      {mintError && <div className="mt-2 text-red-400 text-sm text-center">{mintError}</div>}
+                      {mintSuccess && <div className="mt-2 text-green-400 text-sm text-center break-words">{mintSuccess}</div>}
+                    </form>
+
+                    {/* Revoke Section */}
+                    <div className="pt-8">
+                      <h3 className="text-gray-300 font-semibold mb-4 text-center">Revoke a Credential</h3>
+                      <form onSubmit={handleRevoke} className="flex gap-4">
+                        <input 
+                          type="text" 
+                          placeholder="Enter Credential Hash to Revoke" 
+                          value={revokeHash} 
+                          onChange={(e) => setRevokeHash(e.target.value)} 
+                          className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/50" 
+                          required 
+                        />
+                        <button type="submit" disabled={isRevoking} className="bg-red-500/20 text-red-400 border border-red-500/30 px-6 py-3 rounded-xl font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50 whitespace-nowrap">
+                          {isRevoking ? "Revoking..." : "Revoke"}
+                        </button>
+                      </form>
+                      {revokeMessage && (
+                        <div className={`mt-4 p-3 rounded-lg text-sm text-center ${revokeMessage.includes("failed") ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-green-500/10 text-green-400 border border-green-500/20"}`}>
+                          {revokeMessage}
+                        </div>
+                      )}
                     </div>
-
-                    <input type="text" placeholder="Student ID Number" value={studentId} onChange={(e) => setStudentId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-accentPurple/50 outline-none" required />
-                    <input type="text" placeholder="Academic Program (e.g., BSc Software Engineering)" value={programName} onChange={(e) => setProgramName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-accentPurple/50 outline-none" required />
-                    
-                    <label className="border-2 border-dashed border-white/20 rounded-xl p-6 text-center hover:border-accentPurple/50 transition-colors bg-black/20 block cursor-pointer group">
-                      <input type="file" onChange={(e) => handleFileUpload(e, false)} style={{ display: 'none' }} required />
-                      <p className="text-gray-300 font-medium group-hover:text-accentPurple transition-colors">
-                        {fileName ? fileName : "Upload Certificate to Generate Hash"}
-                      </p>
-                    </label>
-
-                    <button type="submit" disabled={isMinting} className="w-full bg-gradient-to-r from-accentPurple to-accentCyan text-white font-semibold rounded-xl px-5 py-4 mt-4 shadow-lg shadow-accentPurple/20 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50">
-                      {isMinting ? "Minting to Blockchain..." : "Mint Digital Credential"}
-                    </button>
-                    {mintError && <div className="mt-2 text-red-400 text-sm text-center">{mintError}</div>}
-                    {mintSuccess && <div className="mt-2 text-green-400 text-sm text-center break-words">{mintSuccess}</div>}
-                  </form>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-red-400 font-semibold mb-2">{mintError || "Access Denied"}</p>
+                    <p className="text-gray-400 text-sm">Your wallet is connected, but it is not registered as an Accredited Institution on this smart contract.</p>
+                  </div>
                 )}
-
-                {/* NEW: Revoke Section */}
-                <div className="pt-8">
-                  <h3 className="text-gray-300 font-semibold mb-4 text-center">Revoke a Credential</h3>
-                  <form onSubmit={handleRevoke} className="flex gap-4">
-                    <input 
-                      type="text" 
-                      placeholder="Enter Credential Hash to Revoke" 
-                      value={revokeHash} 
-                      onChange={(e) => setRevokeHash(e.target.value)} 
-                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/50" 
-                      required 
-                    />
-                    <button type="submit" disabled={isRevoking} className="bg-red-500/20 text-red-400 border border-red-500/30 px-6 py-3 rounded-xl font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50 whitespace-nowrap">
-                      {isRevoking ? "Revoking..." : "Revoke"}
-                    </button>
-                  </form>
-                  {revokeMessage && (
-                    <div className={`mt-4 p-3 rounded-lg text-sm text-center ${revokeMessage.includes("failed") ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-green-500/10 text-green-400 border border-green-500/20"}`}>
-                      {revokeMessage}
-                    </div>
-                  )}
-                </div>
               </>
             )}
           </div>
