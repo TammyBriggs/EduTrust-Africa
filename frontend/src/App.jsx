@@ -92,16 +92,43 @@ function App() {
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
 
-      const tx = await contract.issueCredential(mintFileHash, ethers.id(studentId), programName);
+      // --- 1. PRE-FLIGHT CHECK ---
+      // We check if the hash already exists BEFORE prompting MetaMask to sign a transaction
+      try {
+        const checkData = await contract.verifyCredential(mintFileHash);
+        
+        // If the above line DOES NOT throw an error, it means the hash exists on the blockchain.
+        if (checkData[0] === true) {
+          setMintError("Duplicate Entry: This exact document has already been minted and is currently valid on the blockchain.");
+        } else {
+          setMintError("Invalid Action: This document was previously revoked. You must generate a new, updated certificate file to create a unique cryptographic hash.");
+        }
+        setIsMinting(false);
+        return; // Stop the minting process entirely
+      } catch (checkErr) {
+        // If verifyCredential throws an error, it means "EduTrust: Credential not found".
+        // This is exactly what we want! It means the hash is new and safe to mint.
+      }
+
+      // --- 2. EXECUTE TRANSACTION ---
+      const signer = await provider.getSigner();
+      const contractWithSigner = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
+
+      const tx = await contractWithSigner.issueCredential(mintFileHash, ethers.id(studentId), programName);
       await tx.wait(); 
 
       setMintSuccess(`Success! Anchored to block. TX: ${tx.hash}`);
       setMintFileHash(""); setFileName(""); setStudentId(""); setProgramName("");
     } catch (err) {
-      setMintError("Transaction failed.");
+      console.error(err);
+      // Catch user rejections (e.g., clicking "Reject" in MetaMask)
+      if (err.code === "ACTION_REJECTED") {
+        setMintError("Transaction was rejected in MetaMask.");
+      } else {
+        setMintError("Transaction failed. Ensure you have sufficient Sepolia ETH.");
+      }
     }
     setIsMinting(false);
   };

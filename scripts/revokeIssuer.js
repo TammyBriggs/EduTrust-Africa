@@ -2,7 +2,7 @@ const hre = require("hardhat");
 
 async function main() {
   // REPLACE WITH YOUR NEWLY DEPLOYED CONTRACT ADDRESS
-  const contractAddress = "YOUR_NEW_CONTRACT_ADDRESS";
+  const contractAddress = "0x4C117612Fa38CD8E2B20072D7D233aB54e1f9868";
   
   // The wallet address you want to REVOKE
   const issuerAddress = "THE_WALLET_ADDRESS_TO_REVOKE"; 
