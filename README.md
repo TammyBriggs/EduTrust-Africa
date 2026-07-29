@@ -27,7 +27,7 @@ The frontend is a single-page React application that utilizes `ethers.js` to bri
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-github-repo-url>
+git clone https://github.com/TammyBriggs/EduTrust-Africa.git
 cd EduTrust-Africa
 ```
 
